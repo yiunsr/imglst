@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Face morhping{% endblock %}
+{% block contenttitle %}Face morhping{% endblock %}
+
+{% block head %}
+<style>
+canv as[data-class]{
+    width:300px;
+    height:200px;
+}
+</style>
+
+{% endblock %}
+
+{% block content %}
+<section class="content">
+        <div class="container-fluid">
+            <div class="block-header">
+                <!-- 
+                    <h2>Head</h2>
+                -->
+            </div>
+            <!-- Body Copy -->
+            <div class="row clearfix">
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                    <div class="card">
+                        <div class="header">
+                            <h2>
+                                morphing of two faces
+                            </h2>
+                        </div>
+                        <div class="header">
+                            <h2>
+                                두 얼굴에 대해 모핑(합성)
+                            </h2>
+                        </div>
+                        <div class="body">
+                            <p class="lead">
+                                
+                            </p>
+                            
+                            
+                            <div class="row">
+                                <div class="col-sm-6 col-md-6">
+                                    <div class="thumbnail">
+                                        <div class="caption">
+                                            <h3>Image 1</h3>
+                                        </div>
+                                        <canvas data-class="canvasLeft"  data-src="/static/res/person/person04_01.jpg"></canvas>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 col-md-6">
+                                    <div class="thumbnail">
+                                        <div class="caption">
+                                            <h3>Image 2</h3>
+                                        </div>
+                                        <canvas data-class="canvasRight"  data-src="/static/res/person/person03_01.jpg"></canvas>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                            <div class="row" data-class="form">
+                                
+                                <div class="col-xs-6 col-sm-6 col-md-2 col-lg-2">
+                                    <p>
+                                        <b>Percent</b>
+                                    </p>
+                                    <p>
+                                        0% : left(top) <br/>
+                                        50% : average <br/>
+                                        100% : right(bottom)
+                                    </p>
+                                </div>
+                                <div class="col-xs-6 col-sm-6 col-md-2 col-lg-2">
+                                    <div class="input-group input-group-lg">
+                                        <div class="form-line">
+                                            <input data-class="percent" type="number"  min="0" max="100" step="1" class="form-control" placeholder="" value="50">
+                                        </div>
+                                        <span class="input-group-addon"> %</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-xs-6 col-sm-6 col-md-2 col-lg-2">
+                                    <button type="button" class="btn btn-primary waves-effect" 
+                                        onclick="canvasMorphing(this, $('[data-class=canvasLeft]'), $('[data-class=canvasRight]') );">morhping</button>
+                                </div>
+                                
+                            </div>
+                            
+                            
+                            <div class="row">
+                                <div class="col-sm-6 col-md-3">
+                                    <div class="thumbnail">
+                                        <div class="caption">
+                                            <h3>Result</h3>
+                                        </div>
+                                        <img id="result_img">
+                                    </div>
+                                </div>
+                                
+                                
+                            </div>
+                            
+                            
+                               
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- #END# Body Copy -->
+        </div>
+    </section>
+
+
+{% csrf_token %}
+{% endblock %}
+ 
+ {% block script %} 
+ 
+ 
+<script>
+$(function () {
+	var canvasLeft = $("[data-class=canvasLeft]")[0];
+    var contextLeft = canvasLeft.getContext('2d');
+    
+    var canvasRight = $("[data-class=canvasRight]")[0];
+    var contextRight = canvasRight.getContext('2d');
+    
+    var imageObjLeft = new Image();
+    var imageObjRight = new Image();
+	
+    imageObjLeft.onload = function() {
+    	$("[data-class=canvasLeft]").attr("width", this.width+"px" );
+    	$("[data-class=canvasLeft]").attr("height", this.height+"px" );
+    	contextLeft.drawImage(imageObjLeft, 0, 0, this.width, this.height );
+    };
+    imageObjLeft.src = $(canvasLeft).attr("data-src");
+    
+    imageObjRight.onload = function() {
+    	$("[data-class=canvasRight]").attr("width", this.width+"px" );
+    	$("[data-class=canvasRight]").attr("height", this.height+"px" );
+    	contextRight.drawImage(imageObjRight, 0, 0, this.width, this.height );
+    };
+    imageObjRight.src = $(canvasRight).attr("data-src");
+    
+});
+
+function canvasToFile( canvas ){
+	var blobBin = atob(canvas.toDataURL().split(',')[1]);
+	
+	var array = [];
+	for(var i = 0; i < blobBin.length; i++) {
+	    array.push(blobBin.charCodeAt(i));
+	}
+	
+	var fileObj=new Blob([new Uint8Array(array)], {type: 'image/png'});
+	return fileObj;
+}
+
+function canvasMorphing(element, lhs, rhs){
+	var left = canvasToFile(lhs[0]);
+	var right = canvasToFile(rhs[0]);
+	var percentEle = $(element).parents("[data-class=form]").find("[data-class=percent]");
+	var percent = percentEle.val();
+	if ( percent == ""){
+		swal("Fill Percent between 0 ~ 100");
+	}
+	morphing(left, right, percent);
+}
+
+function morphing(left, right, percent){
+	_loading(true);
+	var formdata = new FormData();
+	formdata.append("left", left);
+	formdata.append("right", right);
+	formdata.append("percent", 100 - percent);
+	$.ajax({
+	   url: "/demo/morhping",
+	   type: "POST",
+	   data: formdata,
+	   processData: false,
+	   contentType: false,
+	}).done(function(response){
+		$("#result_img").attr("src", response.img);
+		_loading(false);
+	});
+}
+
+</script>
+ 
+ {% endblock %}

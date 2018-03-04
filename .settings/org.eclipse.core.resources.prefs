@@ -1,0 +1,12 @@
+eclipse.preferences.version=1
+encoding//demo/__init__.py=utf-8
+encoding//demo/urls.py=utf-8
+encoding//demo/views.py=utf-8
+encoding//facemorpher/__init__.py=utf-8
+encoding//imglst/ErrClass.py=utf-8
+encoding//imglst/__init__.py=utf-8
+encoding//imglst/temlate_context.py=utf-8
+encoding//imglst/view.py=utf-8
+encoding//util/__init__.py=utf-8
+encoding//util/face_landmark_detection.py=utf-8
+encoding//util/utils.py=utf-8

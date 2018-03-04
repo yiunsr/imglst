@@ -1,0 +1,527 @@
+{% extends "base.html" %}
+
+{% block title %}Face Landmark{% endblock %}
+{% block contenttitle %}Face Landmark{% endblock %}
+
+{% block head %}
+<style>
+canvas[data-class]{
+    width:600px;
+    height:427px;
+}
+
+.item_none{
+    height:80px;
+    margin-left:20px;
+    height:40px;
+}
+
+
+
+label[for=eyes_01], label[for=eyes_02], label[for=nose_01], label[for=nose_02], label[for=mouth_01], label[for=mouth_02] {
+    margin-left:20px;
+    height:inherit;
+}
+.eyes_01{
+    width:100px;
+    height:40px;
+}
+.eyes_02{
+    width:50px;
+    height:40px;
+}
+.nose_01{
+    width:30px;
+    height:50px;
+}
+.nose_02{
+    width:30px;
+    height:30px;
+}
+.mouth_01{
+    width:50px;
+    height:30px;
+}
+.mouth_02{
+    width:60px;
+    height:30px;
+}
+
+</style>
+
+{% endblock %}
+
+{% block content %}
+<section class="content">
+        <div class="container-fluid">
+            <div class="block-header">
+                <!-- 
+                    <h2>Head</h2>
+                -->
+            </div>
+            <!-- Body Copy -->
+            <div class="row clearfix">
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                    <div class="card">
+                        <div class="header">
+                            <h2>
+                                Detect Face Landmark(Apply sticker after Landmark detect)
+                            </h2>
+                        </div>
+                        <div class="header">
+                            <h2>
+                                얼굴 랜드마크 추출(Landmark Detect 후, 스티커를 적용할 것)
+                            </h2>
+                        </div>
+                        <div class="body">
+                            <p class="lead">
+                                
+                            </p>
+                            
+                            
+                            <div class="row">
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <div class="thumbnail">
+                                        <div class="caption">
+                                            <ul class="nav nav-tabs">
+                                                <li class="active"><a data-toggle="tab" href="#sample1">sample image1</a></li>
+                                                <li><a data-toggle="tab" href="#sample2">sample image2</a></li>
+                                                <li><a data-toggle="tab" href="#userupload">userupload</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="tab-content">
+                                            <div id="sample1" class="tab-pane fade in active">
+                                                <canvas data-class="canvasLeft"  data-src="/static/res/person/person04_01.jpg"></canvas>
+                                            </div>
+                                            <div id="sample2" class="tab-pane fade">
+                                                <canvas data-class="canvasLeft"  data-src="/static/res/person/person05_01.jpg"></canvas>
+                                            </div>
+                                            <div id="userupload" class="tab-pane fade">
+                                                <input id="userupload_input" onchange="fileUploadChange(this,event);" type="file" >
+                                                <canvas id="userupload_canvas"></canvas>
+                                            </div>
+                                        </div>
+                                        <br/>
+                                        
+                                        <input type="checkbox" id="draw_point" class="filled-in"  checked="1"/>
+                                        <label for="draw_point">Draw Point</label>
+                                        
+                                        &nbsp;&nbsp;
+                                        
+                                        <button type="button" class="btn btn-primary waves-effect" 
+                                        onclick="canvasLandmark(this);">Landmark Detect</button>
+                                    </div>
+                                    
+                                </div>
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <h2 class="card-inside-title">
+                                        Select Sticker
+                                    </h2>
+                                    <h2 class="card-inside-title">
+                                        <small>Eyes(눈)</small>
+                                    </h2>
+                                    <div class="row clearfix">
+                                        <input name="eyes" class="item_none"  type="radio" id="eyes_none" checked=""  value="0" >
+                                        <label class="item_none" for="eyes_none">없음</label>&nbsp;
+                                        <input name="eyes" type="radio" id="eyes_01" value="1">
+                                        <label for="eyes_01">
+                                            <img class="eyes_01" src="/static/res/sticker/sticker_eye_001.png">
+                                        </label>
+                                        <input name="eyes" type="radio" id="eyes_02" value="2">
+                                        <label for="eyes_02">
+                                            <img class="eyes_02 left" src="/static/res/sticker/sticker_eye_002_01.png">
+                                            <img class="eyes_02 right" src="/static/res/sticker/sticker_eye_002_02.png">
+                                        </label>
+                                    </div>
+                                    
+                                    <br/>
+                                    <h2 class="card-inside-title">
+                                        <small>Nose(코)</small>
+                                    </h2>
+                                    <div class="row clearfix">
+                                        <input name="nose" class="item_none"  type="radio" id="nose_none" checked=""  value="0" >
+                                        <label class="item_none" for="nose_none">없음</label>&nbsp;
+                                        <input name="nose" type="radio" id="nose_01" value="1">
+                                        <label for="nose_01">
+                                            <img class="nose_01" src="/static/res/sticker/sticker_nose_001.png">
+                                        </label>
+                                        <input name="nose" type="radio" id="nose_02" value="2">
+                                        <label for="nose_02">
+                                            <img class="nose_02" src="/static/res/sticker/sticker_nose_002.png">
+                                        </label>
+                                    </div>
+                                    
+                                    <br/>
+                                    <h2 class="card-inside-title">
+                                        <small>Mouth(입)</small>
+                                    </h2>
+                                    <div class="row clearfix">
+                                        <input name="mouth" class="item_none"  type="radio" id="mouth_none" checked=""  value="0" >
+                                        <label class="item_none" for="mouth_none">없음</label>&nbsp;
+                                        <input name="mouth" type="radio" id="mouth_01" value="1">
+                                        <label for="mouth_01">
+                                            <img class="mouth_01" src="/static/res/sticker/sticker_mouth_001.png">
+                                        </label>
+                                        <input name="mouth" type="radio" id="mouth_02" value="2">
+                                        <label for="mouth_02">
+                                            <img class="mouth_02" src="/static/res/sticker/sticker_mouth_002.png">
+                                        </label>
+                                    </div>
+                                    
+                                    <br/>
+                                    <div class="row clearfix">
+                                        <button type="button" class="btn btn-primary waves-effect" 
+                                        onclick="clearCanvas();">Clear</button>
+                                        &nbsp;&nbsp;&nbsp;
+                                        <button type="button" class="btn btn-primary waves-effect" 
+                                        onclick="canvasSticker();">Apply Sticker</button>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                                                        
+                            
+                               
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- #END# Body Copy -->
+        </div>
+    </section>
+
+
+{% csrf_token %}
+{% endblock %}
+ 
+{% block script %} 
+<script src="/static/js/exif-js/exif.js"></script>
+ 
+<script>
+var canvasFaceLandMark;
+var uploadImgLandmark;
+
+$(function () {
+    clearCanvas();
+});
+
+function clearCanvas(  ){
+	$("[data-class=canvasLeft]").each(function(){
+		var canvasLeft = this;
+	    var imageObjLeft = new Image();
+	    imageObjLeft.onload = function() {
+	    	$(canvasLeft).width(imageObjLeft.width);
+		    $(canvasLeft).height(imageObjLeft.height);
+		    $(canvasLeft).attr("width", imageObjLeft.width );
+		    $(canvasLeft).attr("height", imageObjLeft.height );
+		    contextLeft = canvasLeft.getContext('2d');
+			contextLeft.drawImage(imageObjLeft, 0,0 , imageObjLeft.width, imageObjLeft.height );
+	    	
+	    };
+	    imageObjLeft.src = $(this).attr("data-src");
+	    	
+	})
+	
+	if(uploadImg){
+    	var canvasSel = $("#userupload_canvas");
+        contextLeft = canvasSel[0].getContext('2d');
+    	contextLeft.drawImage(uploadImg, 0,0 , uploadImg.width, uploadImg.height );
+	}
+}
+
+function clearOneCanvas(){
+	
+}
+
+
+function drawPolygon(canvas, points, number){
+	var ctx = canvas.getContext('2d');
+	
+	
+	for(var  index = 0 ; index < points.length ; index++ ) {
+		var point = points[index]; 
+		ctx.fillRect(point[0]-1,point[1]-1,2,2);
+		if(number){
+			ctx.font = "10px Arial";
+			ctx.fillText(""+index,  point[0] , point[1] - 2 );
+
+		}
+			
+	}
+	
+}
+
+function canvasToFile( canvas ){
+	var imgType = "image/jpeg" ;  //  image/jpeg  or image/png
+	var dataUrl = canvas.toDataURL(imgType);
+	var blobBin = atob(dataUrl.split(',')[1]);
+    
+	
+	var array = [];
+	for(var i = 0; i < blobBin.length; i++) {
+	    array.push(blobBin.charCodeAt(i));
+	}
+	
+	var fileObj=new Blob([new Uint8Array(array)], {type: imgType});
+	return fileObj;
+}
+
+function getCurrentCanvasSelector(){
+	var canvasSel;
+	var currentTab = $('div.tab-pane.active').attr('id');
+	if (currentTab == "sample1"){
+		canvasSel = $("#sample1 canvas");
+	}else if(currentTab == "sample2"){
+		canvasSel = $("#sample2 canvas");
+	}else{
+		canvasSel = $("#userupload_canvas");
+	}
+	return canvasSel;
+}
+
+function canvasLandmark(element){
+	$(element).attr("disabled", "disabled");
+	var lhs= getCurrentCanvasSelector();
+	
+	var left = canvasToFile(lhs[0]);
+	landmark(element, left, lhs[0]);
+}
+
+function landmark(element, img, canvasEle){
+	_loading(true);
+	var formdata = new FormData();
+	formdata.append("img", img);
+	$.ajax({
+	   url: "/demo/landmark",
+	   type: "POST",
+	   data: formdata,
+	   processData: false,
+	   contentType: false,
+	}).done(function(response){
+		canvasFaceLandMark = response;
+		console.log(response)
+		//drawPolygon(canvasEle, canvasFaceLandMark.face_points);
+		
+		var lhs= getCurrentCanvasSelector();
+		lhs.data("landmark", 1);
+		
+		_loading(false);
+		
+		if ($("#draw_point").is(":checked") == false)
+			return;
+		
+		
+		drawPolygon(canvasEle, canvasFaceLandMark.img_points, true);
+		/*
+		drawPolygon(canvasEle, canvasFaceLandMark.mouth_points);
+		drawPolygon(canvasEle, canvasFaceLandMark.right_brow_point);
+		drawPolygon(canvasEle, canvasFaceLandMark.left_brow_point);
+		drawPolygon(canvasEle, canvasFaceLandMark.right_eye_points);
+		drawPolygon(canvasEle, canvasFaceLandMark.left_eye_points);
+		drawPolygon(canvasEle, canvasFaceLandMark.nose_points);
+		drawPolygon(canvasEle, canvasFaceLandMark.jaw_points);
+		drawPolygon(canvasEle, canvasFaceLandMark.chin_points);
+		*/
+
+	}).always(function() {
+		$(element).removeAttr("disabled");
+	 });
+}
+
+
+//// image draw 를 하기위한 rect 를 구하는 함수
+function _poly2rect(points, marginXRatio, marginYRatio){
+	var maxX=maxY=0;
+	var minX=minY=99999999;
+	for(var index in points){
+		var point = points[index];
+		maxX = Math.max(maxX, point[0]  );
+		maxY = Math.max(maxY, point[1]  );
+		minX = Math.min(minX, point[0]  );
+		minY = Math.min(minY, point[1]  );
+	}
+	var marginX = (maxX - minX ) * marginXRatio;
+	var marginY = (maxY - minY ) * marginYRatio;
+	return [[minX - marginX ,minY - marginY], [maxX + marginX, maxY + marginY]];
+}
+
+
+function canvasSticker(){
+	_loading(true);
+	var lhs= getCurrentCanvasSelector();
+	var landmark = lhs.data("landmark");
+	if(!landmark){
+		var formdata = new FormData();
+		var img = canvasToFile(lhs[0]);
+		
+		formdata.append("img", img);
+		$.ajax({
+		   url: "/demo/landmark",
+		   type: "POST",
+		   data: formdata,
+		   processData: false,
+		   contentType: false,
+		}).done(function(response){
+			canvasFaceLandMark = response;
+			console.log(response)
+			
+			var lhs= getCurrentCanvasSelector();
+			lhs.data("landmark", 1);
+			
+			var eyes = $("input[name=eyes]:checked").val();
+			var nose = $("input[name=nose]:checked").val();
+			var mouth = $("input[name=mouth]:checked").val();
+			var canvasLeft = getCurrentCanvasSelector()[0];
+			sticker(canvasLeft, canvasFaceLandMark, eyes, nose, mouth);
+
+		});
+		
+		return;
+	}
+		
+	
+	var eyes = $("input[name=eyes]:checked").val();
+	var nose = $("input[name=nose]:checked").val();
+	var mouth = $("input[name=mouth]:checked").val();
+	var canvasLeft = getCurrentCanvasSelector()[0];
+	sticker(canvasLeft, canvasFaceLandMark, eyes, nose, mouth);
+}
+
+
+function sticker( canvas, landmark, eyes, nose, mouth){
+	var ctx = canvas.getContext('2d');
+	//clearCanvas();
+	
+	var x,y, width, height;
+	
+	var left_eyes_points = landmark.left_eye_points;
+	var right_eyes_points = landmark.right_eye_points;
+	var left_brow_point = landmark.left_brow_point;
+	var right_brow_point = landmark.right_brow_point;
+	var nose_points  = landmark.nose_points;
+	var mouth_points = landmark.mouth_points;
+	
+	
+	var eyes_img = "";
+	switch(eyes){
+	case "1":
+		eyes_img = $(".eyes_01")[0];
+		rect=_poly2rect(left_eyes_points.concat(right_eyes_points), 0.3, 0.8  );
+		ctx.drawImage(eyes_img, rect[0][0],rect[0][1] , rect[1][0]-rect[0][0], rect[1][1] - rect[0][1]  );
+		break;
+	case "2":
+		eyes_left_img = $(".eyes_02.left")[0];
+		eyes_right_img = $(".eyes_02.right")[0];
+		//// 사진이므로 사람의 오른쪽은 사진에서 왼쪽이기 때문에 방향이 반대이다. 
+		right_rect=_poly2rect(left_eyes_points, 0.1,0.1  );
+		ctx.drawImage(eyes_right_img, right_rect[0][0],right_rect[0][1] , right_rect[1][0]-right_rect[0][0], right_rect[1][1] - right_rect[0][1]  );
+		left_rect=_poly2rect(right_eyes_points, 0.1,0.1  );
+		ctx.drawImage(eyes_left_img, left_rect[0][0],left_rect[0][1] , left_rect[1][0]-left_rect[0][0], left_rect[1][1] - left_rect[0][1]  );
+		break;
+	}
+	
+	var nose_img = "";
+	switch(nose){
+	case "1":
+		nose_img = $(".nose_01")[0];
+		rect=_poly2rect(nose_points, 0.5, 0.1  );
+		ctx.drawImage(nose_img, rect[0][0],rect[0][1] , rect[1][0]-rect[0][0], rect[1][1] - rect[0][1]  );
+		break;
+	case "2":
+		nose_img = $(".nose_02")[0];
+		rect=_poly2rect(nose_points, 0.1, 0.1  );
+		ctx.drawImage(nose_img, rect[0][0],rect[0][1] , rect[1][0]-rect[0][0], rect[1][1] - rect[0][1]  );
+		break;
+	}
+	
+	var mouth_img = "";
+	switch(mouth){
+	case "1":
+		mouth_img = $(".mouth_01")[0];
+		rect=_poly2rect(mouth_points, 0.2, 0.2  );
+		ctx.drawImage(mouth_img, rect[0][0],rect[0][1] , rect[1][0]-rect[0][0], rect[1][1] - rect[0][1]  );
+		break;
+	case "2":
+		mouth_img = $(".mouth_02")[0];
+		rect=_poly2rect(mouth_points, 0.2, 0.2  );
+		ctx.drawImage(mouth_img, rect[0][0],rect[0][1] , rect[1][0]-rect[0][0], rect[1][1] - rect[0][1]  );
+		break;
+	}
+	_loading(false);
+}
+
+var uploadImg = new Image();
+function fileUploadChange(input, event) {
+
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+        	
+        	uploadImg.onload = function(){
+        		EXIF.getData(uploadImg, function() {
+        			// TODO : callback hell 수정필요
+        			
+        			///// 사진 같은 경우,  Orientation 이 landscape 인 경우가 있기 때문에 보정한다. 
+        			var orientation = EXIF.getTag(this, "Orientation");
+        		
+        			///// 이미지 사이즈가 640을 넘으면 축소한다.
+            		var newWidth = this.width;
+            		var newHeight = this.height;
+            		var maxSize = Math.max(newWidth, newHeight);
+            		if(maxSize > 640){
+            			var zoom = 640.0 / maxSize;
+            			newWidth = newWidth * zoom;
+            			newHeight = newHeight * zoom;
+            		}
+            		var canvasSel = $("#userupload_canvas");
+            		canvasSel.width(newWidth);
+            		canvasSel.height(newHeight);
+            		canvasSel.attr("width", newWidth );
+            		canvasSel.attr("height", newHeight );
+        		    contextLeft = canvasSel[0].getContext('2d');
+        		    
+        		    
+        			///// 사진 같은 경우,  Orientation 이 landscape 인 경우가 있기 때문에 보정한다. 
+        		    switch (orientation) {
+        		      case 2: contextLeft.transform(-1, 0, 0, 1, newWidth, 0); break;
+        		      case 3: contextLeft.transform(-1, 0, 0, -1, newWidth, newHeight ); break;
+        		      case 4: contextLeft.transform(1, 0, 0, -1, 0, newHeight ); break;
+        		      case 5: contextLeft.transform(0, 1, 1, 0, 0, 0); break;
+        		      case 6: contextLeft.transform(0, 1, -1, 0, newHeight , 0); break;
+        		      case 7: contextLeft.transform(0, -1, -1, 0, newHeight , width); break;
+        		      case 8: contextLeft.transform(0, -1, 1, 0, 0, newWidth); break;
+        		      default: break;
+        		    }
+        		    
+        			contextLeft.drawImage(this, 0,0 , newWidth, newHeight );
+        			
+        			//// transform 이후 좌표가 잘못되는 경우가 있기 때문에 resotre 가 필요하다.
+        			//// 원칙적으로 restore 만 있으면 되야 하는데 잘 안되어서 아래 setTransform 코드 추가 
+        			//// https://stackoverflow.com/questions/44822938/html-canvas-reset-drawing-point-after-transform-and-rotate
+        			contextLeft.restore(); 
+        			contextLeft.setTransform(1,0,0,1,0,0);
+
+        	    });
+    			
+        		
+        	}
+        	uploadImg.src = e.target.result;
+        	
+            $('#blah').attr('src', e.target.result);
+        	
+        	
+            
+        	
+        }
+
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+
+
+</script>
+ 
+ {% endblock %}
