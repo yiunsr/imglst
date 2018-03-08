@@ -20,5 +20,7 @@ from imglst import view
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('demo/', include('demo.urls')),
+    path('tools/landmark', view.main),
     path('', view.main),
+    
 ]
