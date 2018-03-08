@@ -223,15 +223,55 @@ function clearCanvas(  ){
 	    	
 	})
 	
-	if(uploadImg){
-    	var canvasSel = $("#userupload_canvas");
-        contextLeft = canvasSel[0].getContext('2d');
-    	contextLeft.drawImage(uploadImg, 0,0 , uploadImg.width, uploadImg.height );
+	if(uploadImg.src){
+		drawUploadImg();
 	}
 }
 
-function clearOneCanvas(){
+function drawUploadImg(){
+	EXIF.getData(uploadImg, function() {
 	
+	///// 사진 같은 경우,  Orientation 이 landscape 인 경우가 있기 때문에 보정한다. 
+	var orientation = EXIF.getTag(this, "Orientation");
+
+	///// 이미지 사이즈가 640을 넘으면 축소한다.
+	var newWidth = this.width;
+	var newHeight = this.height;
+	var maxSize = Math.max(newWidth, newHeight);
+	if(maxSize > 640){
+		var zoom = 640.0 / maxSize;
+		newWidth = newWidth * zoom;
+		newHeight = newHeight * zoom;
+	}
+	var canvasSel = $("#userupload_canvas");
+	canvasSel.width(newWidth);
+	canvasSel.height(newHeight);
+	canvasSel.attr("width", newWidth );
+	canvasSel.attr("height", newHeight );
+    contextLeft = canvasSel[0].getContext('2d');
+    
+    
+	///// 사진 같은 경우,  Orientation 이 landscape 인 경우가 있기 때문에 보정한다. 
+    switch (orientation) {
+      case 2: contextLeft.transform(-1, 0, 0, 1, newWidth, 0); break;
+      case 3: contextLeft.transform(-1, 0, 0, -1, newWidth, newHeight ); break;
+      case 4: contextLeft.transform(1, 0, 0, -1, 0, newHeight ); break;
+      case 5: contextLeft.transform(0, 1, 1, 0, 0, 0); break;
+      case 6: contextLeft.transform(0, 1, -1, 0, newHeight , 0); break;
+      case 7: contextLeft.transform(0, -1, -1, 0, newHeight , width); break;
+      case 8: contextLeft.transform(0, -1, 1, 0, 0, newWidth); break;
+      default: break;
+    }
+    
+	contextLeft.drawImage(this, 0,0 , newWidth, newHeight );
+	
+	//// transform 이후 좌표가 잘못되는 경우가 있기 때문에 resotre 가 필요하다.
+	//// 원칙적으로 restore 만 있으면 되야 하는데 잘 안되어서 아래 setTransform 코드 추가 
+	//// https://stackoverflow.com/questions/44822938/html-canvas-reset-drawing-point-after-transform-and-rotate
+	contextLeft.restore(); 
+	contextLeft.setTransform(1,0,0,1,0,0);
+
+   });
 }
 
 
@@ -453,71 +493,19 @@ function sticker( canvas, landmark, eyes, nose, mouth){
 
 var uploadImg = new Image();
 function fileUploadChange(input, event) {
-
-    if (input.files && input.files[0]) {
-        var reader = new FileReader();
-
-        reader.onload = function (e) {
-        	
-        	uploadImg.onload = function(){
-        		EXIF.getData(uploadImg, function() {
-        			// TODO : callback hell 수정필요
-        			
-        			///// 사진 같은 경우,  Orientation 이 landscape 인 경우가 있기 때문에 보정한다. 
-        			var orientation = EXIF.getTag(this, "Orientation");
-        		
-        			///// 이미지 사이즈가 640을 넘으면 축소한다.
-            		var newWidth = this.width;
-            		var newHeight = this.height;
-            		var maxSize = Math.max(newWidth, newHeight);
-            		if(maxSize > 640){
-            			var zoom = 640.0 / maxSize;
-            			newWidth = newWidth * zoom;
-            			newHeight = newHeight * zoom;
-            		}
-            		var canvasSel = $("#userupload_canvas");
-            		canvasSel.width(newWidth);
-            		canvasSel.height(newHeight);
-            		canvasSel.attr("width", newWidth );
-            		canvasSel.attr("height", newHeight );
-        		    contextLeft = canvasSel[0].getContext('2d');
-        		    
-        		    
-        			///// 사진 같은 경우,  Orientation 이 landscape 인 경우가 있기 때문에 보정한다. 
-        		    switch (orientation) {
-        		      case 2: contextLeft.transform(-1, 0, 0, 1, newWidth, 0); break;
-        		      case 3: contextLeft.transform(-1, 0, 0, -1, newWidth, newHeight ); break;
-        		      case 4: contextLeft.transform(1, 0, 0, -1, 0, newHeight ); break;
-        		      case 5: contextLeft.transform(0, 1, 1, 0, 0, 0); break;
-        		      case 6: contextLeft.transform(0, 1, -1, 0, newHeight , 0); break;
-        		      case 7: contextLeft.transform(0, -1, -1, 0, newHeight , width); break;
-        		      case 8: contextLeft.transform(0, -1, 1, 0, 0, newWidth); break;
-        		      default: break;
-        		    }
-        		    
-        			contextLeft.drawImage(this, 0,0 , newWidth, newHeight );
-        			
-        			//// transform 이후 좌표가 잘못되는 경우가 있기 때문에 resotre 가 필요하다.
-        			//// 원칙적으로 restore 만 있으면 되야 하는데 잘 안되어서 아래 setTransform 코드 추가 
-        			//// https://stackoverflow.com/questions/44822938/html-canvas-reset-drawing-point-after-transform-and-rotate
-        			contextLeft.restore(); 
-        			contextLeft.setTransform(1,0,0,1,0,0);
-
-        	    });
-    			
-        		
-        	}
-        	uploadImg.src = e.target.result;
-        	
-            $('#blah').attr('src', e.target.result);
-        	
-        	
-            
-        	
-        }
-
-        reader.readAsDataURL(input.files[0]);
+	if (!input.files || !input.files[0]) {
+		return;
+	}
+    var reader = new FileReader();
+    reader.onload = function (e) {
+    	uploadImg.onload = function(){
+    		drawUploadImg();
+    	}
+    	uploadImg.src = e.target.result;
+    	
     }
+
+    reader.readAsDataURL(input.files[0]);
 }
 
 
