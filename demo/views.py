@@ -13,7 +13,7 @@ from django.views.decorators.csrf import requires_csrf_token
 from django.http.response import HttpResponse
 from facemorpher import locator, warper, blender
 import base64
-import scipy.misc
+# import scipy.misc
 
 
 from django.shortcuts import render
