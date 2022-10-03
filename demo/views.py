@@ -7,14 +7,12 @@ import numpy as np
 from PIL import Image
 from io import BytesIO
 
-
 from imglst.ErrClass import  ErrClass
 from django.views.decorators.csrf import requires_csrf_token
+from django.views.decorators.csrf import csrf_exempt
 from django.http.response import HttpResponse
 from facemorpher import locator, warper, blender
 import base64
-# import scipy.misc
-
 
 from django.shortcuts import render
 from django.template.response import TemplateResponse
@@ -51,51 +49,43 @@ def sample(request):
         logger.error(traceback.format_exc() )
         return ErrClass('UNKNWON_ERROR').response()
 
-@requires_csrf_token
+@csrf_exempt
 def landmark(request):
     try: 
         logger.info("/demo/landmark")
-        if request.is_ajax() == False:
-            c = {}
-            response = TemplateResponse(request, 'demo/landmark.html', c)
-            response.render()
-            return response
-     
-        else:
-             
-            img_file = request.FILES["img"]
+        img_file = request.FILES["img"]
+        
+        img_np = np.asarray(bytearray(img_file.file.getvalue()), dtype=np.uint8)
+        img_cv = cv2.imdecode(img_np, 0 )  # @UndefinedVariable
             
-            img_np = np.asarray(bytearray(img_file.file.getvalue()), dtype=np.uint8)
-            img_cv = cv2.imdecode(img_np, 0 )  # @UndefinedVariable
-             
-            (box, img_point_list) = face_landmark(img_cv)
+        (box, img_point_list) = face_landmark(img_cv)
+        
             
-             
-            # http://stackoverflow.com/questions/37210655/opencv-detect-face-landmarks-ear-chin-ear-line
-            face_points = img_point_list[17:68]
-            mouth_points = img_point_list[48:61]
-            right_brow_point = img_point_list[17:22]
-            left_brow_point = img_point_list[22:27]
-            right_eye_points = img_point_list[36:42]
-            left_eye_points = img_point_list[42:48]
-            nose_points = img_point_list[27:35]
-            jaw_points = img_point_list[0:17]
-            chin_points = img_point_list[6:11]
+        # http://stackoverflow.com/questions/37210655/opencv-detect-face-landmarks-ear-chin-ear-line
+        face_points = img_point_list[17:68]
+        mouth_points = img_point_list[48:61]
+        right_brow_point = img_point_list[17:22]
+        left_brow_point = img_point_list[22:27]
+        right_eye_points = img_point_list[36:42]
+        left_eye_points = img_point_list[42:48]
+        nose_points = img_point_list[27:35]
+        jaw_points = img_point_list[0:17]
+        chin_points = img_point_list[6:11]
+        
+        result = {}
+        result['error'] = ErrClass('NOERROR').toDict()
+        result['img_points'] = img_point_list
+        result['face_points'] = face_points
+        result['mouth_points'] = mouth_points
+        result['right_brow_point'] = right_brow_point
+        result['left_brow_point'] = left_brow_point
+        result['right_eye_points'] = right_eye_points
+        result['left_eye_points'] = left_eye_points
+        result['nose_points'] = nose_points
+        result['jaw_points'] = jaw_points
+        result['chin_points'] = chin_points
             
-            result = {}
-            result['error'] = ErrClass('NOERROR').toDict()
-            result['img_points'] = img_point_list
-            result['face_points'] = face_points
-            result['mouth_points'] = mouth_points
-            result['right_brow_point'] = right_brow_point
-            result['left_brow_point'] = left_brow_point
-            result['right_eye_points'] = right_eye_points
-            result['left_eye_points'] = left_eye_points
-            result['nose_points'] = nose_points
-            result['jaw_points'] = jaw_points
-            result['chin_points'] = chin_points
-             
-            return HttpResponse(json.dumps(result), content_type="application/json")
+        return HttpResponse(json.dumps(result), content_type="application/json")
  
      
     except Exception as e:
