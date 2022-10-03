@@ -6,51 +6,79 @@
       dark
     >
       <div class="d-flex align-center">
-        <v-img
-          alt="Vuetify Logo"
-          class="shrink mr-2"
-          contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
-          transition="scale-transition"
-          width="40"
-        />
-
-        <v-img
-          alt="Vuetify Name"
-          class="shrink mt-1 hidden-sm-and-down"
-          contain
-          min-width="100"
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
-          width="100"
-        />
+        imglst
       </div>
 
       <v-spacer></v-spacer>
 
       <v-btn
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
+        href="https://github.com/yiunsr/imglst"
         target="_blank"
         text
       >
-        <span class="mr-2">Latest Release</span>
+        <span class="mr-2">github</span>
         <v-icon>mdi-open-in-new</v-icon>
       </v-btn>
     </v-app-bar>
 
     <v-main>
-      <HelloWorld/>
+      <v-container fluid>
+        <v-row>
+          <v-col cols="2">
+            <v-sheet elevation="2">
+              <v-list-item>
+                <v-list-item-content>
+                  <v-list-item-title class="text-h6">
+                    imglst
+                  </v-list-item-title>
+                  <v-list-item-subtitle>
+                    이미지 관련 작업 라이브러리 샘플
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+
+              <v-divider></v-divider>
+
+              <v-list dense nav>
+                <v-list-item link to="facelandmark">
+                  <v-list-item-icon>
+                    <v-icon>mdi-face-recognition</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title link >얼굴 랜드마크 추출</v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+              </v-list>
+            
+
+            
+            </v-sheet>
+          </v-col>
+
+          <v-col>
+            <v-sheet
+              min-height="70vh"
+              rounded="lg"
+            >
+              <router-view></router-view>
+            </v-sheet>
+          </v-col>
+        </v-row>
+        
+      
+      </v-container>
+        
     </v-main>
+    
   </v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld';
 
 export default {
   name: 'App',
 
   components: {
-    HelloWorld,
   },
 
   data: () => ({
