@@ -254,6 +254,8 @@
         }
         if(idx == 3){
           img = this.userUploadImg;
+          if(!img)
+            return;
         }
         this.canvasWidth = img.width;
         this.canvasHeight = img.height;

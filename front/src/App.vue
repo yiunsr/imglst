@@ -41,11 +41,22 @@
 
               <v-list dense nav>
                 <v-list-item link to="facelandmark">
-                  <v-list-item-icon>
+                  <v-list-item-icon class="mr-2">
                     <v-icon>mdi-face-recognition</v-icon>
                   </v-list-item-icon>
                   <v-list-item-content>
-                    <v-list-item-title link >얼굴 랜드마크 추출</v-list-item-title>
+                    <v-list-item-title link >Face Landmarking</v-list-item-title>
+                    <v-list-item-subtitle>얼굴 랜드마크 추출</v-list-item-subtitle>
+                  </v-list-item-content>
+                </v-list-item>
+                <v-list-item link to="morphing">
+                  <v-list-item-icon  class="mr-2">
+                    <v-icon style="width:12px;">mdi-account-arrow-right</v-icon>
+                    <v-icon style="width:12px;">mdi-account-arrow-right-outline mdi-flip-h</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title link >Morph on face</v-list-item-title>
+                    <v-list-item-subtitle>두 얼굴에 대해 모핑</v-list-item-subtitle>
                   </v-list-item-content>
                 </v-list-item>
               </v-list>

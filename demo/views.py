@@ -44,7 +44,7 @@ def sample(request):
             response = TemplateResponse(request, 'sample.html', c)
             response.render()
             return response
-    
+
     except Exception as e:
         logger.error(traceback.format_exc() )
         return ErrClass('UNKNWON_ERROR').response()
@@ -54,13 +54,12 @@ def landmark(request):
     try: 
         logger.info("/demo/landmark")
         img_file = request.FILES["img"]
-        
+
         img_np = np.asarray(bytearray(img_file.file.getvalue()), dtype=np.uint8)
         img_cv = cv2.imdecode(img_np, 0 )  # @UndefinedVariable
-            
+
         (box, img_point_list) = face_landmark(img_cv)
-        
-            
+
         # http://stackoverflow.com/questions/37210655/opencv-detect-face-landmarks-ear-chin-ear-line
         face_points = img_point_list[17:68]
         mouth_points = img_point_list[48:61]
@@ -71,7 +70,7 @@ def landmark(request):
         nose_points = img_point_list[27:35]
         jaw_points = img_point_list[0:17]
         chin_points = img_point_list[6:11]
-        
+
         result = {}
         result['error'] = ErrClass('NOERROR').toDict()
         result['img_points'] = img_point_list
@@ -84,62 +83,67 @@ def landmark(request):
         result['nose_points'] = nose_points
         result['jaw_points'] = jaw_points
         result['chin_points'] = chin_points
-            
+
         return HttpResponse(json.dumps(result), content_type="application/json")
- 
-     
     except Exception as e:
         logger.error(traceback.format_exc() )
         return ErrClass('UNKNWON_ERROR').response()
-    
+
+def get_new_size(width, height):
+    small_size = min(width, height)
+    if small_size < 200:
+        return (False, width, height)
+    zoom = small_size / 200
+    new_width = int(width / zoom)
+    new_height = int(height / zoom)
+    return (True, new_width, new_height)
+
+@csrf_exempt
 def morhping(request):
     try: 
         logger.info("/demo/morhping")
-        if request.is_ajax() == False:
-            c = {}
-            response = TemplateResponse(request, 'demo/morphing.html', c)
-            response.render()
-            return response
-    
-        else:
-            img_file_01 = request.FILES["left"]
-            img_file_01 = Image.open(img_file_01) ## JPEG YUV 로 된 이미지 처리를 위해 PIL Image 를 한 번거친다. 
-            img_file_01 = img_file_01.convert("RGB")
-            img_cv_01 = np.array(img_file_01)
-              
-            img_file_02 = request.FILES["right"]
-            img_file_02 = Image.open( img_file_02 )
-            img_file_02 = img_file_02.convert( "RGB" )
-            img_cv_02 = np.array(img_file_02)
-              
-            percent  =  request.POST.get("percent", "50")
-            percent = int(percent) / 100.0
-              
-            (img_face_box_01, img_point_list_01) = face_landmark( img_cv_01 )
-            img_point_list_np_01 = np.array( img_point_list_01 )
-              
-            (img_face_box_02, img_point_list_02) = face_landmark( img_cv_02 )
-            img_point_list_np_02 = np.array( img_point_list_02 )
-            
-            width = max(img_cv_01.shape[0], img_cv_02.shape[0] )
-            height = max(img_cv_01.shape[0] , img_cv_02.shape[1] )
-              
-            average_face = morph_image(img_cv_01, img_point_list_np_01, img_cv_02, img_point_list_np_02, percent, width, height)
-              
-            result_img = Image.fromarray(average_face)
-              
-              
-            result_img =  "data:image/png;base64," + _base64( result_img , img_format = "png" )
-              
-            # 최종적으로는 아래 링크를 이용해 average_face 를 실제 사진에 넣어야 한다. 
-            # https://www.learnopencv.com/face-swap-using-opencv-c-python/
-            
-            result = {}
-            result['error'] = ErrClass('NOERROR').toDict()
-            result['img'] = result_img
-            return HttpResponse(json.dumps(result), content_type="application/json")
+        img_file_01 = request.FILES["left"]
+        img_file_01 = Image.open(img_file_01) ## JPEG YUV 로 된 이미지 처리를 위해 PIL Image 를 한 번거친다. 
+        (need_resize, new_width, new_height) = get_new_size(img_file_01.width, img_file_01.height)
+        if need_resize:
+           img_file_01 = img_file_01.resize((new_width, new_height))
+        img_file_01 = img_file_01.convert("RGB") 
+        img_cv_01 = np.array(img_file_01)
 
-    
+        img_file_02 = request.FILES["right"]
+        img_file_02 = Image.open( img_file_02 )
+        (need_resize, new_width, new_height) = get_new_size(img_file_02.width, img_file_02.height)
+        if need_resize:
+            img_file_02 = img_file_02.resize((new_width, new_height))
+        img_file_02 = img_file_02.convert( "RGB" )
+        img_cv_02 = np.array(img_file_02)
+
+        percent  =  request.POST.get("percent", "50")
+        percent = int(percent) / 100.0
+
+        (_, img_point_list_01) = face_landmark(img_cv_01)
+        img_point_list_np_01 = np.array( img_point_list_01 )
+
+        (_, img_point_list_02) = face_landmark(img_cv_02)
+        img_point_list_np_02 = np.array( img_point_list_02 )
+
+        # width = max(img_cv_01.shape[0], img_cv_02.shape[0] )
+        # height = max(img_cv_01.shape[1] , img_cv_02.shape[1] )
+        height = max(img_cv_01.shape[0], img_cv_02.shape[0] )
+        width = max(img_cv_01.shape[1] , img_cv_02.shape[1] )
+
+        average_face = morph_image(img_cv_01, img_point_list_np_01, img_cv_02, img_point_list_np_02, percent, width, height)
+        result_img = Image.fromarray(average_face)
+        result_img =  "data:image/png;base64," + _base64( result_img , img_format = "png" )
+
+        # 최종적으로는 아래 링크를 이용해 average_face 를 실제 사진에 넣어야 한다. 
+        # https://www.learnopencv.com/face-swap-using-opencv-c-python/
+
+        result = {}
+        result['error'] = ErrClass('NOERROR').toDict()
+        result['img'] = result_img
+        return HttpResponse(json.dumps(result), content_type="application/json")
+
     except Exception as e:
         logger.error(traceback.format_exc() )
         return ErrClass('UNKNWON_ERROR').response()
